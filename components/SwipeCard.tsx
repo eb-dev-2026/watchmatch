@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, useAnimation, PanInfo } from "framer-motion";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { posterUrl, type MediaItem } from "@/lib/tmdb";
 import { useI18n } from "@/lib/i18n";
 
@@ -19,6 +19,7 @@ export default function SwipeCard({ item, onSwipe, onOpenTrailer, stackPosition 
   const isTop = stackPosition === 0;
   const controls = useAnimation();
   const [dragDir, setDragDir] = useState<"like" | "pass" | null>(null);
+  const swipingRef = useRef(false);
 
   useEffect(() => {
     controls.start({
@@ -40,11 +41,9 @@ export default function SwipeCard({ item, onSwipe, onOpenTrailer, stackPosition 
 
   async function handleDragEnd(_: any, info: PanInfo) {
     if (info.offset.x > SWIPE_THRESHOLD) {
-      await controls.start({ x: 500, rotate: 20, opacity: 0, transition: { duration: 0.3 } });
-      onSwipe("like");
+      return programmaticSwipe("like")
     } else if (info.offset.x < -SWIPE_THRESHOLD) {
-      await controls.start({ x: -500, rotate: -20, opacity: 0, transition: { duration: 0.3 } });
-      onSwipe("pass");
+      return programmaticSwipe("pass")
     } else {
       controls.start({ x: 0, rotate: 0, transition: { type: "spring", stiffness: 300, damping: 25 } });
       setDragDir(null);
@@ -52,6 +51,8 @@ export default function SwipeCard({ item, onSwipe, onOpenTrailer, stackPosition 
   }
 
   async function programmaticSwipe(direction: "like" | "pass") {
+    if (swipingRef.current) return;
+    swipingRef.current = true;
     await controls.start({
       x: direction === "like" ? 500 : -500,
       rotate: direction === "like" ? 20 : -20,

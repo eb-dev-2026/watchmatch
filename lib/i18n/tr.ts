@@ -52,6 +52,7 @@ const tr: Dictionary = {
     joinFailed: "Odaya katılınamadı.",
     roomNotFound: "Oda bulunamadı. Kodu kontrol edin veya yeni bir oda oluşturun.",
     contentFailed: "İçerik yüklenemedi.",
+    roomFull: "Bu oda dolu. Odada zaten iki kisi var."
   },
 };
 
