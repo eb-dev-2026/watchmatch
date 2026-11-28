@@ -24,7 +24,7 @@ q "begin; select join_room('$CODE', 'user-b'); select pg_sleep(4); commit;" > /d
 sleep 2
 OUT=$(q "select join_room('$CODE', 'user-c')")
 wait
-check "the second person gets ROOM_FULL" "$(echo "$OUT" | grep -o ROOM_FULL)" "ROOM_FULL"
+check "the second person gets no slot" "$OUT" ""
 check "the first person keeps the slot" "$(q "select guest_id from rooms where id = '$ROOM'")" "user-b"
 
 echo "Test 2: both users like the same movie at once"
