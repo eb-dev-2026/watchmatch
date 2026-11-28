@@ -43,21 +43,12 @@ export async function createRoom(params: CreateRoomParams) {
 
 export async function joinRoom(code: string) {
   const guestId = getOrCreateGuestId();
-  const { data: room, error } = await supabase
-    .from("rooms")
-    .select("*")
-    .eq("code", code)
-    .single();
+  const { data: room, error } = await supabase.rpc("join_room", {
+    p_code: code,
+    p_user_id: guestId
+  })
 
-  if (error || !room) throw new Error("ROOM_NOT_FOUND");
-
-  if (room.host_id !== guestId && !room.guest_id) {
-    const { error: updateError } = await supabase
-      .from("rooms")
-      .update({ guest_id: guestId, status: "active" })
-      .eq("id", room.id);
-    if (updateError) throw updateError;
-  }
+  if (error) throw new Error(error.message);
 
   return { room, guestId };
 }
@@ -69,44 +60,15 @@ export async function recordSwipe(params: {
   mediaType: MediaType;
   direction: "like" | "pass";
 }) {
-  const { error } = await supabase.from("swipes").insert({
-    room_id: params.roomId,
-    user_id: params.userId,
-    media_id: params.mediaId,
-    media_type: params.mediaType,
-    direction: params.direction,
+  const { data, error } = await supabase.rpc("swipe_and_match", {
+    p_room_id: params.roomId,
+    p_user_id: params.userId,
+    p_media_id: params.mediaId,
+    p_media_type: params.mediaType,
+    p_direction: params.direction,
   });
   if (error) throw error;
-}
-
-export async function checkAndCreateMatch(params: {
-  roomId: string;
-  userId: string;
-  otherUserId: string;
-  mediaId: number;
-  mediaType: MediaType;
-}): Promise<boolean> {
-  const { data: otherLikes, error } = await supabase
-    .from("swipes")
-    .select("*")
-    .eq("room_id", params.roomId)
-    .eq("user_id", params.otherUserId)
-    .eq("media_id", params.mediaId)
-    .eq("direction", "like")
-    .limit(1);
-
-  if (error) throw error;
-  if (!otherLikes || otherLikes.length === 0) return false;
-
-  const { error: matchError } = await supabase.from("matches").insert({
-    room_id: params.roomId,
-    user1_id: params.userId,
-    user2_id: params.otherUserId,
-    media_id: params.mediaId,
-    media_type: params.mediaType,
-  });
-  if (matchError) throw matchError;
-  return true;
+  return data === true;
 }
 
 export function subscribeToRoom(

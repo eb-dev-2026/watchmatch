@@ -50,6 +50,7 @@ const en = {
     joinFailed: "Couldn't join the room.",
     roomNotFound: "Room not found. Check the code or create a new room.",
     contentFailed: "Couldn't load content.",
+    roomFull: "This room is full. Two people are already in swiping."
   },
 };
 

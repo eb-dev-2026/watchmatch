@@ -10,7 +10,6 @@ import {
   getOrCreateGuestId,
   joinRoom,
   recordSwipe,
-  checkAndCreateMatch,
   subscribeToRoom,
 } from "@/lib/room";
 import { supabase } from "@/lib/supabase";
@@ -44,7 +43,7 @@ export default function RoomPage() {
         const result = await joinRoom(code);
         data = result.room;
       } catch (e: any) {
-        setError(e.message === "ROOM_NOT_FOUND" ? t("errors.roomNotFound") : e.message ?? t("errors.roomNotFound"));
+        setError(e.message === "ROOM_FULL" ? t("errors.roomFull") : e.message === "ROOM_NOT_FOUND" ? t("errors.roomNotFound") : e.message ?? t("errors.roomNotFound"));
         setLoading(false);
         return;
       }
@@ -100,18 +99,12 @@ export default function RoomPage() {
     };
   }, [room?.id, userId]);
 
-  const otherUserId = room
-    ? room.host_id === userId
-      ? room.guest_id
-      : room.host_id
-    : null;
-
   async function handleSwipe(item: MediaItem, direction: "like" | "pass") {
     setCursor((c) => c + 1);
     if (!room || !userId) return;
 
     try {
-      await recordSwipe({
+      const matched = await recordSwipe({
         roomId: room.id,
         userId,
         mediaId: item.id,
@@ -119,16 +112,7 @@ export default function RoomPage() {
         direction,
       });
 
-      if (direction === "like" && otherUserId) {
-        const matched = await checkAndCreateMatch({
-          roomId: room.id,
-          userId,
-          otherUserId,
-          mediaId: item.id,
-          mediaType: item.media_type,
-        });
-        if (matched) setMatchedItem(item);
-      }
+      if (matched) setMatchedItem(item);
     } catch (e) {
       console.error(e);
     }

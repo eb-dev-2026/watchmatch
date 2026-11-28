@@ -17,7 +17,8 @@ create table if not exists swipes (
   media_id integer not null,
   media_type text not null check (media_type in ('movie', 'tv')),
   direction text not null check (direction in ('like', 'pass')),
-  created_at timestamptz not null default now()
+  created_at timestamptz not null default now(),
+  constraint swipes_one_per_user_media unique (room_id, user_id, media_id, media_type)
 );
 
 create table if not exists matches (
@@ -28,7 +29,8 @@ create table if not exists matches (
   media_id integer not null,
   media_type text not null check (media_type in ('movie', 'tv')),
   watched_status boolean not null default false,
-  created_at timestamptz not null default now()
+  created_at timestamptz not null default now(),
+  constraint matches_one_per_user_media unique (room_id, media_id, media_type)
 );
 
 create table if not exists user_preferences (

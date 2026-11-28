@@ -29,6 +29,7 @@ WatchMatch is a web app where two people join a shared room, swipe through movie
    ```
 
    Run `supabase/schema.sql` in the Supabase SQL Editor to create the tables.
+   For an existing database, also run the files in 'supabase/migrations' in order.
 
 3. Start the dev server:
 
